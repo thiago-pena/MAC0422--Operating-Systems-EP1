@@ -72,7 +72,7 @@ int main() {
             int status;
             status = mkdir(p[1], S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
             if (DEBUG && !status) printf("[DEBUG] Diretório \"%s\" criado!\n", p[1]);
-            if (status) printf("ERRO: Diretório não criado!\n", c);
+            if (status) printf("ERRO: Diretório \"%s\" não criado!\n", c);
         }
         /* Kill -9*/
         else if (!strcmp(c,"kill") && !strcmp(p[1],"-9")) {
@@ -97,9 +97,11 @@ int main() {
         else {
             if (DEBUG) printf("[DEBUG] Invocação externa\n");
             if ((childpid = fork()) == 0) {
-               execv(c, p);
+               if (execve(c, p, 0) == -1) printf("Processo Filho não criado!"
+                   " Erro: %s\n", strerror(errno));
             }
             else {
+               if (DEBUG) printf("[DEBUG] Processo Pai criou Processo Filho: %d\n", childpid);
                waitpid(-1, NULL, 0);
             }
         }
