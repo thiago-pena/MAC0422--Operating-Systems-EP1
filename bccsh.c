@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <pwd.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <signal.h>
@@ -21,10 +22,9 @@ char *c;
 char *p[MAX_ENTRADA]; /*Ponteiro para serie de strings*/
 int status;
 
-void type_prompt()
-{
-  char dir[MAX_ENTRADA];
-  printf("{%s@%s}", getlogin(),getcwd(dir, sizeof(dir)));
+void type_prompt() {
+    char dir[MAX_ENTRADA];
+    printf("{%s@%s}", getpwuid(getuid())->pw_name, getcwd(dir, sizeof(dir)));
 }
 
 void read_command()
