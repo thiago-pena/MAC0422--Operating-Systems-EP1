@@ -1,0 +1,2 @@
+contador 1 10 11
+contNegativa 1 12 13
