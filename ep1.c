@@ -16,7 +16,6 @@
 #define DEBUG 1
 #define MAX_ENTRADA 1024
 
-<<<<<<< HEAD
 typedef struct processo processo;
 struct processo {
     char *nome;
@@ -28,8 +27,6 @@ struct processo {
 };
 
 
-=======
->>>>>>> ae9a0e3b5da51d7794e0494d5a78f4aff3601d37
 /* Define tipo de função como argumento*/
 typedef void (*functiontype)();
 
@@ -48,12 +45,9 @@ int main(int argc, char const *argv[]) {
   size_t len = 0;
   int nLinhas = 0;
   double elapsed;
-<<<<<<< HEAD
   processo *cab = malloc(sizeof(processo));
   processo *q;
   cab->prox = NULL;
-=======
->>>>>>> ae9a0e3b5da51d7794e0494d5a78f4aff3601d37
 
   /* Abre o arquivo trace a ser lido e o a ser escrito */
   fp = fopen (argv[2],"r");
@@ -73,24 +67,10 @@ int main(int argc, char const *argv[]) {
   if (fp == NULL) {printf("Arquivo \"%s\" não lido Erro: %s\n",argv[2] ,strerror(errno)); exit(1);}
   if(DEBUG) printf("[DEBUG] Número de linhas do trace: %d\n", nLinhas);
 
-<<<<<<< HEAD
-=======
-  /* lê cada linha do arquivo de trace */
-  pthread_t tid[nLinhas];
-  char *nome[nLinhas];
-  int t0[nLinhas], dt[nLinhas], deadline[nLinhas];
-  int cont = nLinhas;
-  linha = malloc(sizeof(char *));
-  for (int i = 0; i < nLinhas; i++) {
-    nome[i] = malloc(sizeof(char*));
-  }
-
->>>>>>> ae9a0e3b5da51d7794e0494d5a78f4aff3601d37
   /*Inicializa o tempo*/
   clock_t start, end;
   start = clock();
 
-<<<<<<< HEAD
   /* lê cada linha do arquivo de trace */
   linha = malloc(sizeof(char *));
   while (EOF != getline(&linha, &len, fp)) {
@@ -107,45 +87,20 @@ int main(int argc, char const *argv[]) {
     if(DEBUG) printf("[DEBUG] deadline: %d\n",novo->deadline);
     novo->prox = cab->prox;
     cab->prox = novo;
-=======
-  while (EOF != getline(&linha, &len, fp)) {
-    if(DEBUG) printf("[DEBUG] Linha de comando lida com getline %s\n", linha);
-    nome[cont -1] = strcpy(nome[cont -1],strtok(linha, " "));
-    if(DEBUG) printf("[DEBUG] nome[%d]: %s\n",(cont -1),nome[cont -1]);
-    t0[cont -1] = atoi(strtok(NULL, " "));
-    if(DEBUG) printf("[DEBUG] t0[%d]: %d\n",(cont -1),t0[cont -1]);
-    dt[cont -1] = atoi(strtok(NULL, " "));
-    if(DEBUG) printf("[DEBUG] dt[%d]: %d\n",(cont -1),dt[cont -1]);
-    deadline[cont -1] = atoi(strtok(NULL, " "));
-    if(DEBUG) printf("[DEBUG] deadline[%d]: %d\n",(cont -1),deadline[cont -1]);
-    cont--;
->>>>>>> ae9a0e3b5da51d7794e0494d5a78f4aff3601d37
   }
   if(DEBUG) printf("[DEBUG] Todas linhas do trace lidas!\n");
 
   /*Inicia os processos como threads*/
-<<<<<<< HEAD
   for (q = cab->prox; q != NULL; q = q->prox) {
     if (pthread_create(&q->tid, NULL, thread , q->nome)) {
         printf("\n Thread \"%s\" não criada! ERRO: %s",q->nome, strerror(errno));
-=======
-  for (int  j = 0; j < nLinhas; j++) {
-    if (pthread_create(&tid[j], NULL, thread , nome[j])) {
-        printf("\n Thread \"%s\" não criada! ERRO: %s",nome[j], strerror(errno));
->>>>>>> ae9a0e3b5da51d7794e0494d5a78f4aff3601d37
         exit(1);
     }
   }
   /*Espera pelas threads finalizarem*/
-<<<<<<< HEAD
   for (q = cab->prox; q != NULL; q = q->prox) {
     if (pthread_join(q->tid, NULL))  {
         printf("\n Thread \"%s\" não terminou! ERRO: %s",q->nome, strerror(errno));
-=======
-  for (int  j = 0; j < nLinhas; j++) {
-    if (pthread_join(tid[j], NULL))  {
-        printf("\n Thread \"%s\" não terminou! ERRO: %s",nome[j], strerror(errno));
->>>>>>> ae9a0e3b5da51d7794e0494d5a78f4aff3601d37
         exit(1);
     }
   }
@@ -179,7 +134,6 @@ void *thread(void * arg) {
     printf("ERRO: Processo não definido\n");
   }
 }
-
 
 /*Contador*/
 void contador () {
