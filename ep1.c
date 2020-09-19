@@ -26,7 +26,6 @@ struct processo {
     processo *prox;
 };
 
-
 /* Define tipo de função como argumento*/
 typedef void (*functiontype)();
 
@@ -43,7 +42,6 @@ int main(int argc, char const *argv[]) {
   FILE *fp, *fp2;
   char *linha = NULL;
   size_t len = 0;
-  int nLinhas = 0;
   double elapsed;
   processo *cab = malloc(sizeof(processo));
   processo *q;
@@ -57,15 +55,6 @@ int main(int argc, char const *argv[]) {
   if (fp2 == NULL) {printf("Arquivo \"%s\" não criado Erro: %s\n",argv[3] ,strerror(errno)); exit(1);}
   if(DEBUG) printf("[DEBUG] Arquivo \"%s\" criado!\n",argv[3]);
 
-  /*Aqui um código lento e burro para contar o número de linhas. Seria bom que esse número estivesse no trace.txt*/
-  char c;
-  for (c = getc(fp); c != EOF; c = getc(fp))
-        if (c == '\n')
-            nLinhas = nLinhas + 1;
-  fclose (fp);
-  fp = fopen (argv[2],"r");
-  if (fp == NULL) {printf("Arquivo \"%s\" não lido Erro: %s\n",argv[2] ,strerror(errno)); exit(1);}
-  if(DEBUG) printf("[DEBUG] Número de linhas do trace: %d\n", nLinhas);
 
   /*Inicializa o tempo*/
   clock_t start, end;
@@ -118,9 +107,9 @@ int main(int argc, char const *argv[]) {
 }
 
 
-/* Essa é uma função thread generalizada.                           */
-/* Separa argumentos vindos junto com a chamada de criação de thread*/
-/* e direciona elas para as funcões incorporadas                    */
+/* Essa é uma função thread generalizada.                            */
+/* Separa argumentos vindos junto com a chamada de criação de thread */
+/* e direciona elas para as funcões incorporadas                     */
 void *thread(void * arg) {
   if(DEBUG) printf("[DEBUG] thread() iniciou com argumento '%s'\n", arg);
   functiontype func;
