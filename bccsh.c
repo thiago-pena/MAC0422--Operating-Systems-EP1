@@ -36,11 +36,11 @@ void read_command() {
     str = malloc(sizeof(char*));
     str = readline(" ");
     if (DEBUG) printf("[DEBUG] Leu linha:%s\n",str );
+    add_history(str);
 
     /*Gera token do comando*/
     c = malloc(sizeof(char*));
     c = strtok(str, " ");
-    add_history(c);
     if (DEBUG) printf("[DEBUG] Comando:%s\n",c );
 
     p[n++] = c; // teste pena -> array da forma [c, p0, p1, p2, ..., NULL]
@@ -48,7 +48,6 @@ void read_command() {
     p[n++] = strtok(NULL, " ");
     if (DEBUG) printf("[DEBUG] Parametro:%s\n", p[n - 1]);
     while (p[n -1] != NULL) {
-        add_history(p[n - 1]);
         p[n] = malloc(sizeof(char*));
         p[n++] = strtok(NULL, " ");
         if (DEBUG) printf("[DEBUG] Parametro:%s\n", p[n - 1]);
