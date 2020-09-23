@@ -24,47 +24,62 @@ char *c;
 char *p[MAX_ENTRADA]; /*Ponteiro para serie de strings*/
 int status;
 
-void type_prompt() {
+void handle_prompt(char *prompt) {
     char dir[MAX_ENTRADA];
-    printf("{%s@%s}", getpwuid(getuid())->pw_name, getcwd(dir, sizeof(dir)));
+    getcwd(dir, sizeof(dir));
+    if (dir != NULL) {
+        strcpy(prompt, "{");
+        strcat(prompt, getpwuid(getuid())->pw_name);
+        strcat(prompt, "@");
+        strcat(prompt, dir);
+        strcat(prompt, "} ");
+    }
+    else
+        printf("ERRO ao obter o diretório com getcwd().");
 }
 
-void read_command() {
+void read_command(char *prompt) {
     n = 0;
+
+    // Teste pena
+    char dir[MAX_ENTRADA];
+
     /*Le uma linha de comando*/
-    char *str;
-    str = malloc(sizeof(char*));
-    str = readline(" ");
-    if (DEBUG) printf("[DEBUG] Leu linha:%s\n",str );
+    char *str = readline(prompt);
+    if (DEBUG) printf("[DEBUG] Leu linha: %s\n",str );
     add_history(str);
 
     /*Gera token do comando*/
     c = malloc(sizeof(char*));
     c = strtok(str, " ");
-    if (DEBUG) printf("[DEBUG] Comando:%s\n",c );
+    if (DEBUG) printf("[DEBUG] Comando: %s\n",c );
 
-    p[n++] = c; // teste pena -> array da forma [c, p0, p1, p2, ..., NULL]
+    p[n++] = c;
     /*Gera token dos proximos parametros*/
     p[n++] = strtok(NULL, " ");
-    if (DEBUG) printf("[DEBUG] Parametro:%s\n", p[n - 1]);
+    if (DEBUG) printf("[DEBUG] Parametro: %s\n", p[n - 1]);
     while (p[n -1] != NULL) {
         p[n] = malloc(sizeof(char*));
         p[n++] = strtok(NULL, " ");
-        if (DEBUG) printf("[DEBUG] Parametro:%s\n", p[n - 1]);
+        if (DEBUG) printf("[DEBUG] Parametro: %s\n", p[n - 1]);
     }
-    p[n] = NULL; // teste pena -> array da forma [c, p0, p1, p2, ..., NULL]
+    p[n] = NULL;
 }
 
 int main() {
+    char *prompt;
+    prompt = malloc(MAX_ENTRADA * sizeof(char *));
     p[0] = NULL;
+
     pid_t childpid;
-    while (TRUE) /* repeat forever */ {
+    while (TRUE) {
         /* Mostra o prompt na tela */
-        type_prompt();
+        handle_prompt(prompt);
+
         /*Inicializa a história*/
         using_history();
         /* Le uma linha de comando do terminal */
-        read_command();
+        read_command(prompt);
 
         /* MKDIR*/
         if (!strcmp(c,"mkdir")) {
