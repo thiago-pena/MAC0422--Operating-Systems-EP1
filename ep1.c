@@ -218,7 +218,7 @@ int main(int argc, char const *argv[]) {
 
     printf("\nNúmero de processos que cumpriram o deadline: %d\n", nCumprimentoDeadline);
     printf("Número total de processos: %d\n", nProcessos);
-    printf("Número de mudanças de contexto: %d\n", numMudancasContexto);
+    printf("Número de mudanças de contexto: %d\n\n", numMudancasContexto);
     printf("[DEBUG] Terminou ep1 em: %f segundos\n",elapsedTime(startMestre,end));
 
     return 0;
@@ -256,10 +256,10 @@ void *thread(void * arg) {
             }
         q = q->prox;
     }
-    if (dParam) {
-        fprintf(stderr, "[t = %.2lf s] Processo %s liberou a CPU %d.\n\n", p->tf, p->nome, sched_getcpu());
+    if (p->escalonador == 1) {
+        if (dParam) fprintf(stderr, "[t = %.2lf s] Processo %s liberou a CPU %d.\n\n", p->tf, p->nome, sched_getcpu());
+        pthread_mutex_unlock(p->mutex);
     }
-    pthread_mutex_unlock(p->mutex);
     return NULL;
 }
 
@@ -277,7 +277,8 @@ void contador (processo *p) {
     if(DEBUG) printf("[DEBUG] Thread: contador inicializada!\n");
     if((p->escalonador == 2) || (p->escalonador == 3)) { // v2
         pthread_mutex_lock(p->mutex);
-        fprintf(stderr, "[t = %.2lf s] Processo %s começou a usar a CPU %d. [1ª vez]\n\n", elapsedTime(startMestre, midMestre), p->nome, sched_getcpu());
+        clock_gettime(CLOCK_REALTIME, &mid);
+        fprintf(stderr, "[t = %.2lf s] Processo %s começou a usar a CPU %d. [1ª vez]\n\n", elapsedTime(startMestre, mid), p->nome, sched_getcpu());
     }
     while (1) {
 
@@ -300,15 +301,17 @@ void contador (processo *p) {
                         if(1) printf("[DEBUG] %s %s revezaram\n",p->nome, q->nome);
                         numMudancasContexto++;
                         if (dParam) {
-                            fprintf(stderr, "[t = %.2lf s] Processo %s revezou com %s e começou a usar a CPU %d. [remover]\n", elapsedTime(startMestre, midMestre),q->nome, p->nome, sched_getcpu());
-                            fprintf(stderr, "[t = %.2lf s] Processo %s liberou a CPU %d. (Revezamento)\n\n", elapsedTime(startMestre, midMestre), p->nome, sched_getcpu());
+                            clock_gettime(CLOCK_REALTIME, &mid);
+                            fprintf(stderr, "[t = %.2lf s] Processo %s revezou com %s e começou a usar a CPU %d. [remover] Tempos restantes: %s->%.2lf, %s->%.2lf\n", elapsedTime(startMestre, mid),q->nome, p->nome, sched_getcpu(), p->nome, p->tRestante, q-> nome, q->tRestante);
+                            fprintf(stderr, "[t = %.2lf s] Processo %s liberou a CPU %d. (Revezamento)\n\n", elapsedTime(startMestre, mid), p->nome, sched_getcpu());
                         }
                         pthread_mutex_unlock(p->mutex);
                         sleep(1);
                         pthread_mutex_lock(p->mutex);
                         clock_gettime(CLOCK_REALTIME, &midMestre);
                         if (dParam) {
-                            fprintf(stderr, "[t = %.2lf s] Processo %s começou a usar a CPU %d. [2ªvez ou mais / Revezamento] (OBS: usei q, o p é '%s')\n\n", elapsedTime(startMestre, midMestre), q->nome, sched_getcpu(), p->nome);
+                            clock_gettime(CLOCK_REALTIME, &mid);
+                            fprintf(stderr, "[t = %.2lf s] Processo %s começou a usar a CPU %d. [2ªvez ou mais / Revezamento] (OBS: usei q, o p é '%s')\n\n", elapsedTime(startMestre, mid), q->nome, sched_getcpu(), p->nome);
                         }
                         break;
                     } else {
@@ -347,7 +350,7 @@ void contador (processo *p) {
         fprintf(stderr, "[t = %.2lf s] Processo %s finalizou sua execução.\n\t\t%s %.2f %.2f\n\n", p->tf, p->nome, p->nome, p->tf, p->tr);
     if((p->escalonador == 2) || (p->escalonador == 3)) {
         if (dParam)
-            fprintf(stderr, "[t = %.2lf s] Processo %s finalizou sua execução.\n[t = %.2lf s] Processo %s liberou a CPU %d. (novo)\n\t\t%s %.2f %.2f\n\n", p->tf, p->nome, p->tf, p->nome, sched_getcpu(), p->nome, p->tf, p->tr);
+            fprintf(stderr, "[t = %.2lf s] Processo %s finalizou sua execução.\n\t\t%s %.2f %.2f\n\n[t = %.2lf s] Processo %s liberou a CPU %d. [Término]\n\n", p->tf, p->nome, p->nome, p->tf, p->tr, p->tf, p->nome, sched_getcpu());
         pthread_mutex_unlock(p->mutex);
     }
     //printf("\n contagem contou até [%li],e UINT_MAX %d vezes\n", conta,n);
