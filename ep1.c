@@ -15,8 +15,7 @@
 #include <pthread.h>
 #include <math.h>
 #include <sys/sysinfo.h>
-/*Esse header e' somente usado para determinação do uso de CPU*/
-
+/*Esse header é somente usado para determinação do uso de CPU*/
 #include <sched.h>
 #include <stdbool.h>
 
@@ -51,9 +50,8 @@ struct processo {
 struct timespec startMestre;
 int numMudancasContexto;
 processo *cab;
-int quantum; // Tempo em ?
+double quantum; // Tempo em segundos
 int nCpu;
-int nTerminou;
 int nProcessos;
 int nCumprimentoDeadline = 0;
 bool dParam = false;
@@ -74,9 +72,8 @@ int main(int argc, char const *argv[]) {
 
     FILE *fp, *fp2;
     char *linha = NULL;
-    quantum = 1000;
-    // quantum = 1;
-    nTerminou = 1;
+    quantum = 0.1; /*quantum em segundos*/
+
     nProcessos = 0;
 
     size_t len = 0;
@@ -145,7 +142,6 @@ int main(int argc, char const *argv[]) {
         novo->mutex = &vMutex[cCont];
         novo->attr = &vAttr[cCont];
         cCont = (cCont + 1) % nCpu ;
-        novo->tRestante = -1;
 
         novo->chegou = false;
         novo->comecou = false;
@@ -176,7 +172,6 @@ int main(int argc, char const *argv[]) {
         }
 
         /* Cria a thread */
-        // q->tRestante = q->dt - elapsed; // @@@ Incorreto!
         q->tRestante = q->dt;
         q->chegou = true;
 
@@ -199,13 +194,9 @@ int main(int argc, char const *argv[]) {
     if (dParam)
         fprintf(stderr, "Total de mudanças de contexto: %d\n",numMudancasContexto);
 
-    nTerminou = 0;
-
     /*fecha o arquivos*/
     fclose (fp);
     fclose (fp2);
-
-
 
     /* Free na lista duplamente ligada*/
     processo *t;
@@ -284,8 +275,8 @@ void contador (processo *p) {
 
     if(DEBUG) printf("[DEBUG] Thread: contador inicializada!\n");
     if((p->escalonador == 2) || (p->escalonador == 3)) { // v2
-        pthread_mutex_lock(p->mutex);
         p->comecou = true;
+        pthread_mutex_lock(p->mutex);
         clock_gettime(CLOCK_REALTIME, &midMestre);
         fprintf(stderr, "[t = %.2lf s] Processo %s começou a usar a CPU %d. [1ª vez]\n\n", elapsedTime(startMestre, midMestre), p->nome, sched_getcpu());
     }
@@ -294,12 +285,10 @@ void contador (processo *p) {
         /*Examina a condicao de tempo das threads*/
         if (conta % 1000000  == 0) {
 
-
             /*Encerra a thread em caso de fim de exec. ou deadline*/
             clock_gettime(CLOCK_THREAD_CPUTIME_ID, &mid);
             p->tRestante = p->dt - elapsedTime(start,mid);
             if (elapsedTime(start,mid) >= p->dt) {
-                  p->tRestante = -1; // @@@ remover
                   p->terminou = true;
                   break;
             }
@@ -310,7 +299,7 @@ void contador (processo *p) {
                     clock_gettime(CLOCK_THREAD_CPUTIME_ID, &mid);
                     p->tRestante = p->dt - elapsedTime(start,mid); // Atualiza tempo restante de p para comparação
                     if ((p->mutex == q->mutex) && (q != cab) &&
-                        (p->tRestante > q->tRestante) && (!q->terminou) && (q->chegou)) { // @@@ Double check se precisa de q->tRestante != -1, sendo que estou usando !q->terminou
+                        (p->tRestante > q->tRestante) && (!q->terminou) && (q->chegou)) {
                         if(1) printf("[DEBUG] %s %s revezaram\n",p->nome, q->nome);
                         numMudancasContexto++;
                         if (dParam) {
@@ -332,35 +321,51 @@ void contador (processo *p) {
                     }
                 }
             }
-            if (p->escalonador == 3) {
-                clock_gettime(CLOCK_THREAD_CPUTIME_ID, &new_start);
-                clock_gettime(CLOCK_THREAD_CPUTIME_ID, &mid);
-
-                while (elapsedTime(new_start, mid) <= quantum) { // Roda pelo período de tempo == quantum
-                    clock_gettime(CLOCK_THREAD_CPUTIME_ID, &mid);
-                }
-                if (dParam) {
-                    fprintf(stderr, "[t = %.2lf s] Processo %s liberou a CPU %d. (Revezamento)\n\n", elapsedTime(startMestre, midMestre), p->nome, sched_getcpu());
-                    fprintf(stderr, "[t = %.2lf s] Processo %s executou durante %.2lf. (Revezamento)\n\n", elapsedTime(startMestre, midMestre), p->nome, elapsedTime(new_start, mid));
-                }
-                pthread_mutex_unlock(p->mutex);
-                usleep(quantum);
-                pthread_mutex_lock(p->mutex);
-            }
-
             // if (p->escalonador == 3) {
+            //     clock_gettime(CLOCK_THREAD_CPUTIME_ID, &new_start);
+            //     clock_gettime(CLOCK_THREAD_CPUTIME_ID, &mid);
+            //
+            //     while (elapsedTime(new_start, mid) <= quantum) { // Roda pelo período de tempo == quantum
+            //         clock_gettime(CLOCK_THREAD_CPUTIME_ID, &mid);
+            //     }
             //     if (dParam) {
             //         fprintf(stderr, "[t = %.2lf s] Processo %s liberou a CPU %d. (Revezamento)\n\n", elapsedTime(startMestre, midMestre), p->nome, sched_getcpu());
+            //         fprintf(stderr, "[t = %.2lf s] Processo %s executou durante %.2lf. (Revezamento)\n\n", elapsedTime(startMestre, midMestre), p->nome, elapsedTime(new_start, mid));
             //     }
             //     pthread_mutex_unlock(p->mutex);
             //     usleep(quantum);
             //     pthread_mutex_lock(p->mutex);
-            //     clock_gettime(CLOCK_REALTIME, &midMestre);
-            //     if (dParam) {
-            //         fprintf(stderr, "[t = %.2lf s] Processo %s começou a usar a CPU %d. [2ªvez ou mais / Revezamento]\n\n", elapsedTime(startMestre, midMestre), p->nome, sched_getcpu());
-            //     }
-            //     numMudancasContexto++;
             // }
+
+            if (p->escalonador == 3) {
+
+                q = p->prox;
+                /*Esse trecho procura se há outra thread ativa para alternar no RR*/
+                while (q != p) {
+                    if ((p->mutex == q->mutex) && (q != cab) && (!q->terminou) && (q->comecou)) {
+                        if (dParam) {
+                            fprintf(stderr, "[t = %.2lf s] Processo %s liberou a CPU %d. (Revezamento)\n\n", elapsedTime(startMestre, midMestre), p->nome, sched_getcpu());
+                        }
+                        pthread_mutex_unlock(p->mutex);
+
+                        /*Faz a thread esperar (busy wait) pela duração do quantum*/
+                        clock_gettime(CLOCK_THREAD_CPUTIME_ID, &new_start);
+                        clock_gettime(CLOCK_THREAD_CPUTIME_ID, &mid);
+                        while (elapsedTime(new_start, mid) <= quantum ) { // Roda pelo período de tempo == quantum
+                            clock_gettime(CLOCK_THREAD_CPUTIME_ID, &mid);
+                        }
+
+                        pthread_mutex_lock(p->mutex);
+                        clock_gettime(CLOCK_REALTIME, &midMestre);
+                        if (dParam) {
+                            fprintf(stderr, "[t = %.2lf s] Processo %s começou a usar a CPU %d. [2ªvez ou mais / Revezamento]\n\n", elapsedTime(startMestre, midMestre), p->nome, sched_getcpu());
+                        }
+                        numMudancasContexto++;
+                        break;
+                    }
+                    q = q->prox;
+                }
+            }
         }
         conta++;
         if (conta == (UINT_MAX -1)) {
@@ -389,12 +394,10 @@ void contador (processo *p) {
 }
 
 
-
-
 double elapsedTime(struct timespec a,struct timespec b)
 {
     long seconds = b.tv_sec - a.tv_sec;
     long nanoseconds = b.tv_nsec - a.tv_nsec;
-    double elapsed = seconds + nanoseconds/1000000000;
+    double elapsed = seconds + (double)nanoseconds/1000000000;
     return elapsed;
 }
