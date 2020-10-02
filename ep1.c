@@ -42,6 +42,7 @@ struct processo {
     pthread_mutex_t *mutex;
     processo *prox;
     processo *ante;
+    bool terminou;
 };
 
 /* Variáveis globais */
@@ -142,6 +143,8 @@ int main(int argc, char const *argv[]) {
         novo->attr = &vAttr[cCont];
         cCont = (cCont + 1) % nCpu ;
         novo->tRestante = -1;
+
+        novo->terminou = false;
     }
     free(linha);
     if(DEBUG) printf("[DEBUG] Todas linhas do trace lidas!\n");
@@ -199,7 +202,6 @@ int main(int argc, char const *argv[]) {
     /* Free na lista duplamente ligada*/
     processo *t;
     for (q = cab->prox; q != cab;) {
-        printf("q->nome: %s\n", q->nome);
         free(q->nome);
         t = q;
         q = q->prox;
@@ -241,11 +243,15 @@ void *thread(void * arg) {
     /*inicia o contador para consumo de tempo real*/
     contador(arg);
 
-    /*Essa parte verefica se a thread que assumira em seguida utilizara imeditamente a CPU*/
+    /* Verifica se a thread que assumirá em seguida utilizará imeditamente a CPU */
     q = p->prox;
     while (q != p) {
         if ((p->mutex == q->mutex) && (q != cab) &&
-            (p->tf  > q->t0)) { numMudancasContexto++; break;}
+            (!q->terminou) && (p->tf  > q->t0)) {
+                numMudancasContexto++;
+                if (dParam) fprintf(stderr, "\t>>> Quantidade de mudanças de contexto: %d\t(sai %s, entra %s)\n\n", numMudancasContexto, p->nome, q->nome);
+                break;
+            }
         q = q->prox;
     }
     if (dParam) {
@@ -329,6 +335,7 @@ void contador (processo *p) {
         }
 
     }
+    p->terminou = true;
     clock_gettime(CLOCK_THREAD_CPUTIME_ID, &end);
     clock_gettime(CLOCK_REALTIME, &midMestre);
     p->tr = elapsedTime(start,end);
