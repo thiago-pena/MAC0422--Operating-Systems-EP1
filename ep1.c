@@ -232,19 +232,18 @@ void *thread(void * arg) {
     }
     /*inicia o contador para consumo de tempo real*/
     contador(arg);
-    if(p->escalonador == 1) {
-        /*Essa parte verefica se a thread que assumira em seguida utilizara imeditamente a CPU*/
-        q = p->prox;
-        while (q != p) {
-            if ((p->mutex == q->mutex) && (q != cab) &&
-                (p->tf  > q->t0)) { numMudancasContexto++; break;}
-            q = q->prox;
-        }
-        if (dParam) {
-            fprintf(stderr, "[t = %.2lf s] Processo %s liberou a CPU %d.\n\n", p->tf, p->nome, sched_getcpu());
-        }
-        pthread_mutex_unlock(p->mutex);
+
+    /*Essa parte verefica se a thread que assumira em seguida utilizara imeditamente a CPU*/
+    q = p->prox;
+    while (q != p) {
+        if ((p->mutex == q->mutex) && (q != cab) &&
+            (p->tf  > q->t0)) { numMudancasContexto++; break;}
+        q = q->prox;
     }
+    if (dParam) {
+        fprintf(stderr, "[t = %.2lf s] Processo %s liberou a CPU %d.\n\n", p->tf, p->nome, sched_getcpu());
+    }
+    pthread_mutex_unlock(p->mutex);
     return NULL;
 }
 
@@ -254,7 +253,6 @@ void contador (processo *p) {
     struct timespec start, mid, midMestre, end;
     long int conta = 0;
     int n = 0;
-    int uCpu = -1;
     processo * q;
 
     clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
@@ -270,15 +268,6 @@ void contador (processo *p) {
         /*Examina a condicao de tempo das threads*/
         if (conta % 1000000  == 0) {
 
-            /*Verifica se a thread mudou de cpu*/ ///  @@@ Não deveria ser só pra escalonadores 2 e 3??? Está dando mudanças de contexto no escalonador 1!
-            uCpu  = sched_getcpu();
-            if (uCpu != p->cpu) {
-                clock_gettime(CLOCK_REALTIME, &midMestre);
-                if (dParam) fprintf(stderr, "[t = %lf s] Processo %s deixou de usar a CPU %d\n", elapsedTime(startMestre,midMestre), p->nome, p->cpu);
-                if (dParam) fprintf(stderr, "[t = %lf s] Processo %s começou a usar a CPU %d\n", elapsedTime(startMestre,midMestre), p->nome, p->cpu);
-                p->cpu = uCpu;
-                numMudancasContexto++;
-            }
 
             /*Encerra a thread em caso de fim de exec. ou deadline*/
             clock_gettime(CLOCK_THREAD_CPUTIME_ID, &mid);
