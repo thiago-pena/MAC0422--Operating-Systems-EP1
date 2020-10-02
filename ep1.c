@@ -51,7 +51,7 @@ struct processo {
 struct timespec startMestre;
 int numMudancasContexto;
 processo *cab;
-int quantum;
+int quantum; // Tempo em ?
 int nCpu;
 int nTerminou;
 int nProcessos;
@@ -75,6 +75,7 @@ int main(int argc, char const *argv[]) {
     FILE *fp, *fp2;
     char *linha = NULL;
     quantum = 1000;
+    // quantum = 1;
     nTerminou = 1;
     nProcessos = 0;
 
@@ -273,7 +274,7 @@ void *thread(void * arg) {
 /*Contador*/
 void contador (processo *p) {
 
-    struct timespec start, mid, midMestre, end;
+    struct timespec start, mid, midMestre, end, new_start;
     long int conta = 0;
     int n = 0;
     processo * q;
@@ -332,18 +333,34 @@ void contador (processo *p) {
                 }
             }
             if (p->escalonador == 3) {
+                clock_gettime(CLOCK_THREAD_CPUTIME_ID, &new_start);
+                clock_gettime(CLOCK_THREAD_CPUTIME_ID, &mid);
+
+                while (elapsedTime(new_start, mid) <= quantum) { // Roda pelo período de tempo == quantum
+                    clock_gettime(CLOCK_THREAD_CPUTIME_ID, &mid);
+                }
                 if (dParam) {
                     fprintf(stderr, "[t = %.2lf s] Processo %s liberou a CPU %d. (Revezamento)\n\n", elapsedTime(startMestre, midMestre), p->nome, sched_getcpu());
+                    fprintf(stderr, "[t = %.2lf s] Processo %s executou durante %.2lf. (Revezamento)\n\n", elapsedTime(startMestre, midMestre), p->nome, elapsedTime(new_start, mid));
                 }
                 pthread_mutex_unlock(p->mutex);
                 usleep(quantum);
                 pthread_mutex_lock(p->mutex);
-                clock_gettime(CLOCK_REALTIME, &midMestre);
-                if (dParam) {
-                    fprintf(stderr, "[t = %.2lf s] Processo %s começou a usar a CPU %d. [2ªvez ou mais / Revezamento]\n\n", elapsedTime(startMestre, midMestre), p->nome, sched_getcpu());
-                }
-                numMudancasContexto++;
             }
+
+            // if (p->escalonador == 3) {
+            //     if (dParam) {
+            //         fprintf(stderr, "[t = %.2lf s] Processo %s liberou a CPU %d. (Revezamento)\n\n", elapsedTime(startMestre, midMestre), p->nome, sched_getcpu());
+            //     }
+            //     pthread_mutex_unlock(p->mutex);
+            //     usleep(quantum);
+            //     pthread_mutex_lock(p->mutex);
+            //     clock_gettime(CLOCK_REALTIME, &midMestre);
+            //     if (dParam) {
+            //         fprintf(stderr, "[t = %.2lf s] Processo %s começou a usar a CPU %d. [2ªvez ou mais / Revezamento]\n\n", elapsedTime(startMestre, midMestre), p->nome, sched_getcpu());
+            //     }
+            //     numMudancasContexto++;
+            // }
         }
         conta++;
         if (conta == (UINT_MAX -1)) {
