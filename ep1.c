@@ -42,6 +42,8 @@ struct processo {
     pthread_mutex_t *mutex;
     processo *prox;
     processo *ante;
+    bool chegou;
+    bool comecou;
     bool terminou;
 };
 
@@ -144,6 +146,8 @@ int main(int argc, char const *argv[]) {
         cCont = (cCont + 1) % nCpu ;
         novo->tRestante = -1;
 
+        novo->chegou = false;
+        novo->comecou = false;
         novo->terminou = false;
     }
     free(linha);
@@ -166,11 +170,14 @@ int main(int argc, char const *argv[]) {
             clock_gettime(CLOCK_REALTIME, &mid);
             elapsed = elapsedTime(startMestre, mid);
         }
-        if (dParam)
+        if (dParam) {
             fprintf(stderr, "[t = %.2lf s] Chegada de um processo.\n\t\t%s %d %d %d\n\n", elapsed, q->nome, q->t0, q->dt, q->deadline);
+        }
 
         /* Cria a thread */
-        q->tRestante = q->dt - elapsed;
+        // q->tRestante = q->dt - elapsed; // @@@ Incorreto!
+        q->tRestante = q->dt;
+        q->chegou = true;
 
         if (pthread_create(&q->tid, q->attr, thread , (void*)q)) {
             printf("\n Thread \"%s\" não criada! ERRO: %s",q->nome, strerror(errno));
@@ -247,7 +254,7 @@ void *thread(void * arg) {
 
     /* Verifica se a thread que assumirá em seguida utilizará imeditamente a CPU */
     q = p->prox;
-    while (q != p) {
+    while (q != p) { // saída no término de um processo
         if ((p->mutex == q->mutex) && (q != cab) &&
             (!q->terminou) && (p->tf  > q->t0)) {
                 numMudancasContexto++;
@@ -277,8 +284,9 @@ void contador (processo *p) {
     if(DEBUG) printf("[DEBUG] Thread: contador inicializada!\n");
     if((p->escalonador == 2) || (p->escalonador == 3)) { // v2
         pthread_mutex_lock(p->mutex);
-        clock_gettime(CLOCK_REALTIME, &mid);
-        fprintf(stderr, "[t = %.2lf s] Processo %s começou a usar a CPU %d. [1ª vez]\n\n", elapsedTime(startMestre, mid), p->nome, sched_getcpu());
+        p->comecou = true;
+        clock_gettime(CLOCK_REALTIME, &midMestre);
+        fprintf(stderr, "[t = %.2lf s] Processo %s começou a usar a CPU %d. [1ª vez]\n\n", elapsedTime(startMestre, midMestre), p->nome, sched_getcpu());
     }
     while (1) {
 
@@ -290,28 +298,32 @@ void contador (processo *p) {
             clock_gettime(CLOCK_THREAD_CPUTIME_ID, &mid);
             p->tRestante = p->dt - elapsedTime(start,mid);
             if (elapsedTime(start,mid) >= p->dt) {
-                  p->tRestante = -1;
+                  p->tRestante = -1; // @@@ remover
+                  p->terminou = true;
                   break;
             }
             if (p->escalonador == 2) {
                 q = p->prox;
                 while (q != p) {
+                    clock_gettime(CLOCK_REALTIME, &midMestre);
+                    clock_gettime(CLOCK_THREAD_CPUTIME_ID, &mid);
+                    p->tRestante = p->dt - elapsedTime(start,mid); // Atualiza tempo restante de p para comparação
                     if ((p->mutex == q->mutex) && (q != cab) &&
-                        (p->tRestante > q->tRestante) && (q->tRestante != -1)) {
+                        (p->tRestante > q->tRestante) && (!q->terminou) && (q->chegou)) { // @@@ Double check se precisa de q->tRestante != -1, sendo que estou usando !q->terminou
                         if(1) printf("[DEBUG] %s %s revezaram\n",p->nome, q->nome);
                         numMudancasContexto++;
                         if (dParam) {
-                            clock_gettime(CLOCK_REALTIME, &mid);
-                            fprintf(stderr, "[t = %.2lf s] Processo %s revezou com %s e começou a usar a CPU %d. [remover] Tempos restantes: %s->%.2lf, %s->%.2lf\n", elapsedTime(startMestre, mid),q->nome, p->nome, sched_getcpu(), p->nome, p->tRestante, q-> nome, q->tRestante);
-                            fprintf(stderr, "[t = %.2lf s] Processo %s liberou a CPU %d. (Revezamento)\n\n", elapsedTime(startMestre, mid), p->nome, sched_getcpu());
+                            fprintf(stderr, "[t = %.2lf s] Processo %s revezou com %s. Tempos restantes: %s->%.2lf, %s->%.2lf\n", elapsedTime(startMestre, midMestre), q->nome, p->nome, p->nome, p->tRestante, q-> nome, q->tRestante);
+                            fprintf(stderr, "[t = %.2lf s] Processo %s liberou a CPU %d. (Revezamento)\n\n", elapsedTime(startMestre, midMestre), p->nome, sched_getcpu());
+                            if (dParam) fprintf(stderr, "\t>>> Quantidade de mudanças de contexto: %d\t(sai %s, entra %s)\n\n", numMudancasContexto, p->nome, q->nome);
                         }
                         pthread_mutex_unlock(p->mutex);
                         sleep(1);
                         pthread_mutex_lock(p->mutex);
                         clock_gettime(CLOCK_REALTIME, &midMestre);
                         if (dParam) {
-                            clock_gettime(CLOCK_REALTIME, &mid);
-                            fprintf(stderr, "[t = %.2lf s] Processo %s começou a usar a CPU %d. [2ªvez ou mais / Revezamento] (OBS: usei q, o p é '%s')\n\n", elapsedTime(startMestre, mid), q->nome, sched_getcpu(), p->nome);
+                            clock_gettime(CLOCK_REALTIME, &midMestre);
+                            fprintf(stderr, "[t = %.2lf s] Processo %s começou a usar a CPU %d. [Retorno]\n\n", elapsedTime(startMestre, midMestre), p->nome, sched_getcpu());
                         }
                         break;
                     } else {
