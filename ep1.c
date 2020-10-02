@@ -198,19 +198,12 @@ int main(int argc, char const *argv[]) {
 
     /* Free na lista duplamente ligada*/
     processo *t;
-    if (cab == cab->prox->prox)  { // A lista duplamente ligada tem apenas um elemento
-        printf("@1\n");
-        free(cab->prox->nome);
-        free(cab->prox);
-    }
-    else {
-        for (q = cab->prox; q != NULL && q != cab ; q = q->prox) {
-            printf("@2\n");
-            free(q->nome);
-            t = q;
-            q = q->prox;
-            free(t);
-        }
+    for (q = cab->prox; q != cab;) {
+        printf("q->nome: %s\n", q->nome);
+        free(q->nome);
+        t = q;
+        q = q->prox;
+        free(t);
     }
     free(cab);
 

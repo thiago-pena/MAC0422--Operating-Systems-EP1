@@ -4,40 +4,40 @@
 [t = 1.00 s] Chegada de um processo.
 		p1 1 5 7
 
-[t = 1.00 s] Processo p0 começou a usar a CPU 0.
-
 [t = 1.00 s] Chegada de um processo.
 		p2 1 5 7
 
-[t = 1.00 s] Processo p1 começou a usar a CPU 1.
+[t = 1.00 s] Processo p0 começou a usar a CPU 0.
+
+[t = 1.00 s] Processo p2 começou a usar a CPU 2.
 
 [t = 1.00 s] Chegada de um processo.
 		p3 1 5 7
 
+[t = 1.00 s] Processo p1 começou a usar a CPU 1.
+
 [t = 1.00 s] Chegada de um processo.
 		p4 1 5 7
 
+[t = 1.00 s] Processo p3 começou a usar a CPU 3.
+
 [t = 1.00 s] Chegada de um processo.
 		p5 1 5 7
-
-[t = 1.00 s] Processo p3 começou a usar a CPU 3.
 
 [t = 1.00 s] Processo p4 começou a usar a CPU 4.
 
 [t = 1.00 s] Chegada de um processo.
 		p6 1 6 7
 
+[t = 1.00 s] Processo p5 começou a usar a CPU 5.
+
 [t = 1.00 s] Chegada de um processo.
 		p7 1 6 7
-
-[t = 1.00 s] Processo p5 começou a usar a CPU 5.
 
 [t = 1.00 s] Processo p6 começou a usar a CPU 6.
 
 [t = 1.00 s] Chegada de um processo.
 		p8 1 6 7
-
-[t = 1.00 s] Processo p7 começou a usar a CPU 7.
 
 [t = 1.00 s] Chegada de um processo.
 		p9 1 6 7
@@ -50,21 +50,18 @@
 [t = 1.00 s] Chegada de um processo.
 		p11 1 6 7
 
-[t = 1.00 s] Processo p10 começou a usar a CPU 10.
+[t = 1.00 s] Processo p7 começou a usar a CPU 7.
 
 [t = 1.00 s] Processo p11 começou a usar a CPU 11.
 
-[t = 1.00 s] Processo p2 começou a usar a CPU 2.
+[t = 1.00 s] Processo p10 começou a usar a CPU 10.
 
 [t = 1.00 s] Processo p9 começou a usar a CPU 9.
 
-[t = 5.00 s] Chegada de um processo.
-		p12 5 6 11
+[t = 6.00 s] Processo p5 finalizou sua execução.
+		p5 6.00 5.00
 
-[t = 6.00 s] Processo p1 finalizou sua execução.
-		p1 6.00 5.00
-
-[t = 6.00 s] Processo p1 liberou a CPU 1.
+[t = 6.00 s] Processo p5 liberou a CPU 5.
 
 [t = 6.00 s] Processo p2 finalizou sua execução.
 		p2 6.00 5.00
@@ -81,30 +78,15 @@
 
 [t = 6.00 s] Processo p4 liberou a CPU 4.
 
-[t = 6.00 s] Processo p5 finalizou sua execução.
-		p5 6.00 5.00
+[t = 6.00 s] Processo p1 finalizou sua execução.
+		p1 6.00 5.00
 
-[t = 6.00 s] Processo p5 liberou a CPU 5.
-
-[t = 7.00 s] Processo p6 finalizou sua execução.
-		p6 7.00 6.00
-
-[t = 7.00 s] Processo p6 liberou a CPU 6.
+[t = 6.00 s] Processo p1 liberou a CPU 1.
 
 [t = 7.00 s] Processo p8 finalizou sua execução.
 		p8 7.00 6.00
 
 [t = 7.00 s] Processo p8 liberou a CPU 8.
-
-[t = 7.00 s] Processo p7 finalizou sua execução.
-		p7 7.00 6.00
-
-[t = 7.00 s] Processo p7 liberou a CPU 7.
-
-[t = 7.00 s] Processo p10 finalizou sua execução.
-		p10 7.00 6.00
-
-[t = 7.00 s] Processo p10 liberou a CPU 10.
 
 [t = 7.00 s] Processo p9 finalizou sua execução.
 		p9 7.00 6.00
@@ -116,16 +98,24 @@
 
 [t = 7.00 s] Processo p11 liberou a CPU 11.
 
+[t = 7.00 s] Processo p7 finalizou sua execução.
+		p7 7.00 6.00
+
+[t = 7.00 s] Processo p7 liberou a CPU 7.
+
+[t = 7.00 s] Processo p6 finalizou sua execução.
+		p6 7.00 6.00
+
+[t = 7.00 s] Processo p6 liberou a CPU 6.
+
+[t = 7.00 s] Processo p10 finalizou sua execução.
+		p10 7.00 6.00
+
+[t = 7.00 s] Processo p10 liberou a CPU 10.
+
 [t = 11.00 s] Processo p0 finalizou sua execução.
 		p0 11.00 10.00
 
 [t = 11.00 s] Processo p0 liberou a CPU 0.
 
-[t = 5.00 s] Processo p12 começou a usar a CPU 0.
-
-[t = 17.00 s] Processo p12 finalizou sua execução.
-		p12 17.00 6.00
-
-[t = 17.00 s] Processo p12 liberou a CPU 0.
-
-Total de mudanças de contexto: 2
+Total de mudanças de contexto: 0
