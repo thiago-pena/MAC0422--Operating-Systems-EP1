@@ -52,6 +52,7 @@ int quantum;
 int nCpu;
 int nTerminou;
 int nProcessos;
+int nCumprimentoDeadline = 0;
 bool dParam = false;
 
 /* Thread generalizada.*/
@@ -193,16 +194,18 @@ int main(int argc, char const *argv[]) {
     fclose (fp);
     fclose (fp2);
 
-    if (cab == NULL) printf("@\n");
-    if (cab->prox == NULL) printf("@2\n");
 
+
+    /* Free na lista duplamente ligada*/
     processo *t;
     if (cab == cab->prox->prox)  { // A lista duplamente ligada tem apenas um elemento
+        printf("@1\n");
         free(cab->prox->nome);
         free(cab->prox);
     }
     else {
         for (q = cab->prox; q != NULL && q != cab ; q = q->prox) {
+            printf("@2\n");
             free(q->nome);
             t = q;
             q = q->prox;
@@ -218,6 +221,9 @@ int main(int argc, char const *argv[]) {
     /*Isso aqui é só para testar o time*/
     clock_gettime(CLOCK_REALTIME, &end);
 
+    printf("\nNúmero de processos que cumpriram o deadline: %d\n", nCumprimentoDeadline);
+    printf("Número total de processos: %d\n", nProcessos);
+    printf("Número de mudanças de contexto: %d\n", numMudancasContexto);
     printf("[DEBUG] Terminou ep1 em: %f segundos\n",elapsedTime(startMestre,end));
 
     return 0;
@@ -336,15 +342,16 @@ void contador (processo *p) {
     p->tf = elapsedTime(startMestre,midMestre);
     p->tRestante = -1;
     if (p->escalonador == 1 && dParam)
-        fprintf(stderr, "[t = %.2lf s] Processo %s finalizou sua execução.\n", p->tf, p->nome);
+        fprintf(stderr, "[t = %.2lf s] Processo %s finalizou sua execução.\n\t\t%s %.2f %.2f\n\n", p->tf, p->nome, p->nome, p->tf, p->tr);
     if((p->escalonador == 2) || (p->escalonador == 3)) {
         if (dParam)
             fprintf(stderr, "[t = %.2lf s] Processo %s finalizou sua execução.\n[t = %.2lf s] Processo %s liberou a CPU %d. (novo)\n\t\t%s %.2f %.2f\n\n", p->tf, p->nome, p->tf, p->nome, sched_getcpu(), p->nome, p->tf, p->tr);
         pthread_mutex_unlock(p->mutex);
     }
     //printf("\n contagem contou até [%li],e UINT_MAX %d vezes\n", conta,n);
-    printf("[DEBUG]  Tempo uso de CPU de %s: %f segundos\n",p->nome, p->tr);
-    if (dParam) fprintf(stderr, "[t = %lf s] Tempo uso de CPU%d de %s: %f segundos\n",p->tf, sched_getcpu(), p->nome, p->tr);
+    printf("[DEBUG]  Tempo uso de CPU de %s: %f segundos (tf: %.2lf, deadline: %d) Teste bool: %d\n",p->nome, p->tr, p->tf, p->deadline, (p->tf <= (double) p->deadline));
+    if (p->tf <= (double) p->deadline) nCumprimentoDeadline++;
+    // if (dParam) fprintf(stderr, "[t = %lf s] Tempo uso de CPU%d de %s: %f segundos\n",p->tf, sched_getcpu(), p->nome, p->tr);
 }
 
 

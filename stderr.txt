@@ -1,49 +1,131 @@
-[t = 1.00 s] chegada de um processo:	 p0 0 38 40
-[t = 1.00 s] chegada de um processo:	 p1 0 37 40
-[t = 1.00 s] chegada de um processo:	 p2 0 36 40
-[t = 1.00 s] chegada de um processo:	 p3 0 35 40
-[t = 1.00 s] Processo p0 começou a usar a CPU 0
-[t = 1.00 s] chegada de um processo:	 p4 0 34 40
-[t = 1.00 s] chegada de um processo:	 p5 0 33 40
-[t = 1.00 s] chegada de um processo:	 p6 0 32 40
-[t = 1.00 s] chegada de um processo:	 p7 0 31 40
-[t = 1.00 s] Processo p1 começou a usar a CPU 0
-[t = 1.00 s] Processo p2 começou a usar a CPU 0
-[t = 1.00 s] Processo p3 começou a usar a CPU 0
-[t = 1.00 s] Processo p4 começou a usar a CPU 0
-[t = 1.00 s] Processo p5 começou a usar a CPU 0
-[t = 1.00 s] Processo p6 começou a usar a CPU 0
-[t = 1.00 s] Processo p7 começou a usar a CPU 0
-[t = 11.00 s] chegada de um processo:	 p8 10 26 40
-[t = 11.00 s] Processo p8 começou a usar a CPU 0
-[t = 13.00 s] chegada de um processo:	 p9 12 23 40
-[t = 13.00 s] Processo p9 começou a usar a CPU 1
-[t = 15.00 s] chegada de um processo:	 p10 14 20 40
-[t = 15.00 s] Processo p10 começou a usar a CPU 0
-[t = 17.00 s] chegada de um processo:	 p11 16 17 40
-[t = 17.00 s] chegada de um processo:	 p12 14 14 40
-[t = 17.00 s] chegada de um processo:	 p13 16 11 40
-[t = 17.00 s] Processo p13 começou a usar a CPU 1
-[t = 17.00 s] Processo p11 começou a usar a CPU 0
-[t = 17.00 s] Processo p12 começou a usar a CPU 0
-[t = 19.00 s] chegada de um processo:	 p14 18 8 40
-[t = 19.00 s] Processo p14 começou a usar a CPU 1
-[t = 21.00 s] chegada de um processo:	 p15 20 5 40
-[t = 21.00 s] Processo p15 começou a usar a CPU 1
-[t = 46.000000 s] Tempo uso de CPU0 de p1: 37.000000 segundos
-[t = 47.000000 s] Tempo uso de CPU1 de p0: 38.000000 segundos
-[t = 84.000000 s] Tempo uso de CPU0 de p3: 35.000000 segundos
-[t = 85.000000 s] Tempo uso de CPU1 de p2: 36.000000 segundos
-[t = 119.000000 s] Tempo uso de CPU1 de p5: 33.000000 segundos
-[t = 122.000000 s] Tempo uso de CPU1 de p4: 34.000000 segundos
-[t = 152.000000 s] Tempo uso de CPU0 de p7: 31.000000 segundos
-[t = 156.000000 s] Tempo uso de CPU1 de p6: 32.000000 segundos
-[t = 177.000000 s] Tempo uso de CPU1 de p9: 23.000000 segundos
-[t = 185.000000 s] Tempo uso de CPU0 de p8: 26.000000 segundos
-[t = 188.000000 s] Tempo uso de CPU1 de p13: 11.000000 segundos
-[t = 207.000000 s] Tempo uso de CPU1 de p10: 20.000000 segundos
-[t = 208.000000 s] Tempo uso de CPU0 de p11: 17.000000 segundos
-[t = 216.000000 s] Tempo uso de CPU0 de p15: 5.000000 segundos
-[t = 225.000000 s] Tempo uso de CPU0 de p12: 14.000000 segundos
-[t = 233.000000 s] Tempo uso de CPU0 de p14: 8.000000 segundos
-Total de mudanças de contexto: 0
+[t = 1.00 s] Chegada de um processo.
+		p0 1 10 11
+
+[t = 1.00 s] Chegada de um processo.
+		p1 1 5 7
+
+[t = 1.00 s] Processo p0 começou a usar a CPU 0.
+
+[t = 1.00 s] Chegada de um processo.
+		p2 1 5 7
+
+[t = 1.00 s] Processo p1 começou a usar a CPU 1.
+
+[t = 1.00 s] Chegada de um processo.
+		p3 1 5 7
+
+[t = 1.00 s] Chegada de um processo.
+		p4 1 5 7
+
+[t = 1.00 s] Chegada de um processo.
+		p5 1 5 7
+
+[t = 1.00 s] Processo p3 começou a usar a CPU 3.
+
+[t = 1.00 s] Processo p4 começou a usar a CPU 4.
+
+[t = 1.00 s] Chegada de um processo.
+		p6 1 6 7
+
+[t = 1.00 s] Chegada de um processo.
+		p7 1 6 7
+
+[t = 1.00 s] Processo p5 começou a usar a CPU 5.
+
+[t = 1.00 s] Processo p6 começou a usar a CPU 6.
+
+[t = 1.00 s] Chegada de um processo.
+		p8 1 6 7
+
+[t = 1.00 s] Processo p7 começou a usar a CPU 7.
+
+[t = 1.00 s] Chegada de um processo.
+		p9 1 6 7
+
+[t = 1.00 s] Processo p8 começou a usar a CPU 8.
+
+[t = 1.00 s] Chegada de um processo.
+		p10 1 6 7
+
+[t = 1.00 s] Chegada de um processo.
+		p11 1 6 7
+
+[t = 1.00 s] Processo p10 começou a usar a CPU 10.
+
+[t = 1.00 s] Processo p11 começou a usar a CPU 11.
+
+[t = 1.00 s] Processo p2 começou a usar a CPU 2.
+
+[t = 1.00 s] Processo p9 começou a usar a CPU 9.
+
+[t = 5.00 s] Chegada de um processo.
+		p12 5 6 11
+
+[t = 6.00 s] Processo p1 finalizou sua execução.
+		p1 6.00 5.00
+
+[t = 6.00 s] Processo p1 liberou a CPU 1.
+
+[t = 6.00 s] Processo p2 finalizou sua execução.
+		p2 6.00 5.00
+
+[t = 6.00 s] Processo p2 liberou a CPU 2.
+
+[t = 6.00 s] Processo p3 finalizou sua execução.
+		p3 6.00 5.00
+
+[t = 6.00 s] Processo p3 liberou a CPU 3.
+
+[t = 6.00 s] Processo p4 finalizou sua execução.
+		p4 6.00 5.00
+
+[t = 6.00 s] Processo p4 liberou a CPU 4.
+
+[t = 6.00 s] Processo p5 finalizou sua execução.
+		p5 6.00 5.00
+
+[t = 6.00 s] Processo p5 liberou a CPU 5.
+
+[t = 7.00 s] Processo p6 finalizou sua execução.
+		p6 7.00 6.00
+
+[t = 7.00 s] Processo p6 liberou a CPU 6.
+
+[t = 7.00 s] Processo p8 finalizou sua execução.
+		p8 7.00 6.00
+
+[t = 7.00 s] Processo p8 liberou a CPU 8.
+
+[t = 7.00 s] Processo p7 finalizou sua execução.
+		p7 7.00 6.00
+
+[t = 7.00 s] Processo p7 liberou a CPU 7.
+
+[t = 7.00 s] Processo p10 finalizou sua execução.
+		p10 7.00 6.00
+
+[t = 7.00 s] Processo p10 liberou a CPU 10.
+
+[t = 7.00 s] Processo p9 finalizou sua execução.
+		p9 7.00 6.00
+
+[t = 7.00 s] Processo p9 liberou a CPU 9.
+
+[t = 7.00 s] Processo p11 finalizou sua execução.
+		p11 7.00 6.00
+
+[t = 7.00 s] Processo p11 liberou a CPU 11.
+
+[t = 11.00 s] Processo p0 finalizou sua execução.
+		p0 11.00 10.00
+
+[t = 11.00 s] Processo p0 liberou a CPU 0.
+
+[t = 5.00 s] Processo p12 começou a usar a CPU 0.
+
+[t = 17.00 s] Processo p12 finalizou sua execução.
+		p12 17.00 6.00
+
+[t = 17.00 s] Processo p12 liberou a CPU 0.
+
+Total de mudanças de contexto: 2
