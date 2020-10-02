@@ -237,8 +237,10 @@ void *thread(void * arg) {
     clock_gettime(CLOCK_REALTIME, &mid);
     if(p->escalonador == 1 ) {
         pthread_mutex_lock(p->mutex);
-        if (dParam)
+        if (dParam) {
+            clock_gettime(CLOCK_REALTIME, &mid);
             fprintf(stderr, "[t = %.2lf s] Processo %s começou a usar a CPU %d.\n\n",elapsedTime(startMestre, mid), p->nome, sched_getcpu());
+        }
     }
     /*inicia o contador para consumo de tempo real*/
     contador(arg);
