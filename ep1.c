@@ -1,30 +1,61 @@
+/*
+ \__\__\__\__\__\__\__\__\__\__\__\__\__\__\__\__\__\__\__\__\__\__\__
+
+  AO PREENCHER ESSE CABEÇALHO COM O NOSSO NOME E NÚMERO USP, DECLARAMOS
+  QUE SOMOS OS ÚNICOS AUTORES E RESPONSÁVEIS POR ESSE PROGRAMA.
+  TODAS AS PARTES ORIGINAIS DESSE EXERCÍCIO-PROGRAMA (EP) FORAM
+  DESENVOLVIDAS E IMPLEMENTADAS POR NÓS SEGUINDO AS INSTRUÇÕES DESSE EP
+  E QUE PORTANTO NÃO CONSTITUEM PLÁGIO. DECLARO TAMBÉM QUE SOMOS RESPONSÁVEIS
+  POR TODAS AS CÓPIAS DESSE PROGRAMA E QUE NÃO DISTRIBUIMOS OU FACILITAMOS A
+  SUA DISTRIBUIÇÃO. ESTAMOS CIENTE QUE OS CASOS DE PLÁGIO SÃO PUNIDOS COM
+  REPROVAÇÃO DIRETA NA DISCIPLINA.
+
+  Nome: Pedro Fernandes
+  NUSP: 5948611
+
+  Nome: Thiago Benitez Pena
+  NUSP: 6847829
+
+  ep1.c
+
+  Referências: Várias referencias de uso das biblioteca pthread.h, time.h
+               e sys/.... .h inspiradas mas não copiadas das notas de
+               aula e sites:
+
+              - https://pt.stackoverflow.com/
+              - https://man7.org/
+              - https://linux.die.net/
+
+ \__\__\__\__\__\__\__\__\__\__\__\__\__\__\__\__\__\__\__\__\__\__\__
+*/
 #define _GNU_SOURCE
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-
 #include <string.h>
 #include <errno.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/sysinfo.h>
 #include <pwd.h>
 #include <signal.h>
 #include <time.h>
 #include <sys/wait.h>
 #include <pthread.h>
 #include <math.h>
-#include <sys/sysinfo.h>
+
+
 /*Esse header é somente usado para determinação do uso de CPU*/
 #include <sched.h>
 #include <stdbool.h>
-
 
 #define TRUE 1
 #define DEBUG 0
 #define MAX_ENTRADA 1024
 #define UINT_MAX	4294967295
 
+/*struct de threads(processos simulados)*/
 typedef struct processo processo;
 struct processo {
     char *nome;
@@ -64,7 +95,7 @@ void contador (processo *p);
 void contNegativa (processo *p);
 /*Multiplicador de 2*/
 void multi2 (processo *p);
-
+/*Calcula o tempo na struct timespec*/
 double elapsedTime(struct timespec a,struct timespec b);
 
 
@@ -72,20 +103,19 @@ int main(int argc, char const *argv[]) {
 
     FILE *fp, *fp2;
     char *linha = NULL;
-    quantum = 0.1; /*quantum em segundos*/
-
-    nProcessos = 0;
-
     size_t len = 0;
-    numMudancasContexto = 0;
     double elapsed;
-    cab = malloc(sizeof(processo));
     processo *q;
+
+    /*Inicializações*/
+    quantum = 0.1; /*quantum em segundos*/
+    nProcessos = 0;
+    numMudancasContexto = 0;
+    cab = malloc(sizeof(processo));
     cab->prox = cab;
     cab->ante = cab;
 
-
-    /*Vetor Semáforos e afinidades*/
+    /*Vetor de semáforos e afinidades de processos por núcleo lógico*/
     nCpu = get_nprocs();
     int cCont = 0;
     pthread_mutex_t vMutex[nCpu];
@@ -115,11 +145,10 @@ int main(int argc, char const *argv[]) {
     }
 
     /* lê cada linha do arquivo de trace */
-    linha = malloc(sizeof(char *));
     while (EOF != getline(&linha, &len, fp)) {
+
         processo *novo = malloc(sizeof(processo));
         nProcessos++;
-
         if(DEBUG) printf("[DEBUG] Linha de comando lida com getline %s\n", linha);
         novo->nome = malloc(sizeof(char *));
         novo->nome = strcpy(novo->nome,strtok(linha, " "));
@@ -130,19 +159,17 @@ int main(int argc, char const *argv[]) {
         if(DEBUG) printf("[DEBUG] dt: %d\n",novo->dt);
         novo->deadline = atoi(strtok(NULL, " "));
         if(DEBUG) printf("[DEBUG] deadline: %d\n",novo->deadline);
-
         novo->escalonador = atoi(argv[1]);
         if(DEBUG) printf("[DEBUG] escalonador: %d\n",novo->escalonador);
         novo->ante = cab->ante;
         cab->ante->prox = novo;
         cab->ante = novo;
         novo->prox = cab;
-
         /* define alternadamente um semáfaro de cpu para cada thread*/
         novo->mutex = &vMutex[cCont];
         novo->attr = &vAttr[cCont];
         cCont = (cCont + 1) % nCpu ;
-
+        /*informações de parada e chegada*/
         novo->chegou = false;
         novo->comecou = false;
         novo->terminou = false;
@@ -150,12 +177,9 @@ int main(int argc, char const *argv[]) {
     free(linha);
     if(DEBUG) printf("[DEBUG] Todas linhas do trace lidas!\n");
 
-
-
     /*Inicializa o tempo*/
     struct timespec  mid, end;
     clock_gettime(CLOCK_REALTIME, &startMestre);
-
 
     /*Inicia os processos como threads*/
     for (q = cab->prox; q != cab; q = q->prox) {
@@ -198,7 +222,7 @@ int main(int argc, char const *argv[]) {
     fclose (fp);
     fclose (fp2);
 
-    /* Free na lista duplamente ligada*/
+    /* Libera memórias alocadas */
     processo *t;
     for (q = cab->prox; q != cab;) {
         free(q->nome);
@@ -207,18 +231,17 @@ int main(int argc, char const *argv[]) {
         free(t);
     }
     free(cab);
-
     for (int i = 0; i < nCpu; i++) {
+        pthread_attr_destroy(&vAttr[i]);
         pthread_mutex_destroy(&vMutex[i]);
     }
 
-    /*Isso aqui é só para testar o time*/
     clock_gettime(CLOCK_REALTIME, &end);
 
     printf("\nNúmero de processos que cumpriram o deadline: %d\n", nCumprimentoDeadline);
     printf("Número total de processos: %d\n", nProcessos);
     printf("Número de mudanças de contexto: %d\n\n", numMudancasContexto);
-    printf("[DEBUG] Terminou ep1 em: %f segundos\n",elapsedTime(startMestre,end));
+    printf("Terminou ep1 em: %f segundos\n",elapsedTime(startMestre,end));
 
     return 0;
 }
@@ -272,13 +295,12 @@ void contador (processo *p) {
 
     clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
 
-
     if(DEBUG) printf("[DEBUG] Thread: contador inicializada!\n");
     if((p->escalonador == 2) || (p->escalonador == 3)) { // v2
         p->comecou = true;
         pthread_mutex_lock(p->mutex);
         clock_gettime(CLOCK_REALTIME, &midMestre);
-        fprintf(stderr, "[t = %.2lf s] Processo %s começou a usar a CPU %d. [1ª vez]\n\n", elapsedTime(startMestre, midMestre), p->nome, sched_getcpu());
+        if (dParam) fprintf(stderr, "[t = %.2lf s] Processo %s começou a usar a CPU %d. [1ª vez]\n\n", elapsedTime(startMestre, midMestre), p->nome, sched_getcpu());
     }
     while (1) {
 
@@ -300,7 +322,7 @@ void contador (processo *p) {
                     p->tRestante = p->dt - elapsedTime(start,mid); // Atualiza tempo restante de p para comparação
                     if ((p->mutex == q->mutex) && (q != cab) &&
                         (p->tRestante > q->tRestante) && (!q->terminou) && (q->chegou)) {
-                        if(1) printf("[DEBUG] %s %s revezaram\n",p->nome, q->nome);
+                        if(DEBUG) printf("[DEBUG] %s %s revezaram\n",p->nome, q->nome);
                         numMudancasContexto++;
                         if (dParam) {
                             fprintf(stderr, "[t = %.2lf s] Processo %s revezou com %s. Tempos restantes: %s->%.2lf, %s->%.2lf\n", elapsedTime(startMestre, midMestre), q->nome, p->nome, p->nome, p->tRestante, q-> nome, q->tRestante);
@@ -321,21 +343,6 @@ void contador (processo *p) {
                     }
                 }
             }
-            // if (p->escalonador == 3) {
-            //     clock_gettime(CLOCK_THREAD_CPUTIME_ID, &new_start);
-            //     clock_gettime(CLOCK_THREAD_CPUTIME_ID, &mid);
-            //
-            //     while (elapsedTime(new_start, mid) <= quantum) { // Roda pelo período de tempo == quantum
-            //         clock_gettime(CLOCK_THREAD_CPUTIME_ID, &mid);
-            //     }
-            //     if (dParam) {
-            //         fprintf(stderr, "[t = %.2lf s] Processo %s liberou a CPU %d. (Revezamento)\n\n", elapsedTime(startMestre, midMestre), p->nome, sched_getcpu());
-            //         fprintf(stderr, "[t = %.2lf s] Processo %s executou durante %.2lf. (Revezamento)\n\n", elapsedTime(startMestre, midMestre), p->nome, elapsedTime(new_start, mid));
-            //     }
-            //     pthread_mutex_unlock(p->mutex);
-            //     usleep(quantum);
-            //     pthread_mutex_lock(p->mutex);
-            // }
 
             if (p->escalonador == 3) {
 
@@ -356,11 +363,13 @@ void contador (processo *p) {
                         }
 
                         pthread_mutex_lock(p->mutex);
+
                         clock_gettime(CLOCK_REALTIME, &midMestre);
                         if (dParam) {
                             fprintf(stderr, "[t = %.2lf s] Processo %s começou a usar a CPU %d. [2ªvez ou mais / Revezamento]\n\n", elapsedTime(startMestre, midMestre), p->nome, sched_getcpu());
                         }
                         numMudancasContexto++;
+                        if (dParam) fprintf(stderr, "\t>>> Quantidade de mudanças de contexto: %d\t(sai %s, entra %s)\n\n", numMudancasContexto, p->nome, q->nome);
                         break;
                     }
                     q = q->prox;
@@ -387,13 +396,12 @@ void contador (processo *p) {
             fprintf(stderr, "[t = %.2lf s] Processo %s finalizou sua execução.\n\t\t%s %.2f %.2f\n\n[t = %.2lf s] Processo %s liberou a CPU %d. [Término]\n\n", p->tf, p->nome, p->nome, p->tf, p->tr, p->tf, p->nome, sched_getcpu());
         pthread_mutex_unlock(p->mutex);
     }
-    //printf("\n contagem contou até [%li],e UINT_MAX %d vezes\n", conta,n);
-    printf("[DEBUG]  Tempo uso de CPU de %s: %f segundos (tf: %.2lf, deadline: %d) Teste bool: %d\n",p->nome, p->tr, p->tf, p->deadline, (p->tf <= (double) p->deadline));
+    if(DEBUG) printf("[DEBUG]  Tempo uso de CPU de %s: %f segundos (tf: %.2lf, deadline: %d) Teste bool: %d\n",p->nome, p->tr, p->tf, p->deadline, (p->tf <= (double) p->deadline));
     if (p->tf <= (double) p->deadline) nCumprimentoDeadline++;
-    // if (dParam) fprintf(stderr, "[t = %lf s] Tempo uso de CPU%d de %s: %f segundos\n",p->tf, sched_getcpu(), p->nome, p->tr);
+    if (dParam) fprintf(stderr, "[t = %lf s] Tempo uso de CPU%d de %s: %f segundos\n",p->tf, sched_getcpu(), p->nome, p->tr);
 }
 
-
+/*Calcula o tempo na struct timespec*/
 double elapsedTime(struct timespec a,struct timespec b)
 {
     long seconds = b.tv_sec - a.tv_sec;
